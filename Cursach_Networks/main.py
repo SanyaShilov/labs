@@ -1,9 +1,8 @@
 #!/usr/bin/python3.6
 
-import view
+import app as app_module
 
 
 if __name__ == '__main__':
-    vw = view.View()
-    vw.init()
-    vw.start_application()
+    app = app_module.Application()
+    app.start()

@@ -4,7 +4,7 @@ from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit,
                              QPushButton,QTableWidget, QTableWidgetItem,
                              QMessageBox, QComboBox, QTextEdit, QHBoxLayout)
 
-import view
+import app
 
 general_font = QFont('Times New Roman', 24, 1)
 title_font = QFont('Times New Roman', 24, 1)
@@ -27,8 +27,9 @@ def yes_no (boolean) :
 
 
 class Content (QWidget):
-    def __init__ (self):
+    def __init__ (self, app):
         super().__init__()
+        self.app = app
 
 
 class Header (QWidget) :
@@ -68,7 +69,7 @@ class TaskButton (PushButton) :
 
     def push (self) :
         presenter.Presenter().current_task = self.task
-        view.View().show_content_task()
+        app.View().show_content_task()
 
 
 class ProposedTaskButton (PushButton) :
@@ -82,7 +83,7 @@ class ProposedTaskButton (PushButton) :
 
     def push (self) :
         presenter.Presenter().current_proposed_task = self.task
-        view.View().show_content_publish()
+        app.View().show_content_publish()
 
 
 class Label (QLabel) :
@@ -96,8 +97,9 @@ class Label (QLabel) :
             self.setFixedSize(width, height)
         if pos_x is not None and pos_y is not None :
             self.move(pos_x, pos_y)
-        if alignment is not None :
-            self.setAlignment(alignment)
+        if alignment is not None:
+            if alignment == 'center':
+                self.setAlignment(Qt.AlignCenter)
 
 
 class TextEdit (QTextEdit) :

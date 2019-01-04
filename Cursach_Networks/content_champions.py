@@ -1,9 +1,6 @@
-import stuff
-
 import widgets
-import view
 
 
 class ContentChampions(widgets.Content):
-    def __init__(self):
-        super().__init__()
+    def __init__(self, app):
+        super().__init__(app)
