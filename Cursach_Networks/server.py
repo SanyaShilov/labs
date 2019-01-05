@@ -57,7 +57,10 @@ def create_db():
         validator={
             '$jsonSchema': {
                 'bsonType': 'object',
-                'required': ['name', 'map', 'white_winning_position', 'black_winning_position'],
+                'required': [
+                    'name', 'map', 'white_winning_position',
+                    'black_winning_position'
+                ],
                 'properties': {
                     'map': {
                         'bsonType': 'array',
@@ -102,8 +105,8 @@ def create_db():
                 [1, 1, 0, 0, 0, 0, 0, 0],
                 [1, 1, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
+                [0, 0, 0, 9, 9, 0, 0, 0],
+                [0, 0, 0, 9, 9, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 0, 0],
                 [0, 0, 0, 0, 0, 0, 5, 5],
                 [0, 0, 0, 0, 0, 0, 5, 5],
@@ -121,7 +124,8 @@ def create_db():
 
 class Server:
     def __init__(self):
-        self.socket = socketlib.socket(socketlib.AF_INET, socketlib.SOCK_STREAM)
+        self.socket = socketlib.socket(
+            socketlib.AF_INET, socketlib.SOCK_STREAM)
         self.socket.setsockopt(socketlib.SOL_SOCKET, socketlib.SO_REUSEADDR, 1)
         self.socket.bind((const.SERVER_IP, const.SERVER_PORT))
         self.client_sockets = []
@@ -246,6 +250,10 @@ class Server:
         self.waiting_socket = None
 
 
-if __name__ == '__main__':
+def main():
     server = Server()
     server.run_forever()
+
+
+if __name__ == '__main__':
+    main()

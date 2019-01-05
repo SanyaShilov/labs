@@ -1,5 +1,7 @@
 #!/usr/bin/python3.6
 
+# pylint: disable=invalid-name
+
 EMPTY = 0
 BLOCK = 9
 WHITE_FIGURES = [1, 2, 3, 4]
@@ -16,7 +18,8 @@ TYPE4 = [4, 8]
 
 
 class Game:
-    def __init__(self, map, white_winning_position, black_winning_position, **kwargs):
+    def __init__(self, map, white_winning_position,
+                 black_winning_position, **kwargs):
         self.map = map
         self.width = len(map[0])
         self.height = len(map)
@@ -47,7 +50,7 @@ class Game:
             if [i, j] in self.available_moves:
                 return self._move(i, j)
             return self._deselect()
-        elif (
+        if (
                 self.map[i][j] in WHITE_FIGURES and self.turn == TURN_WHITE or
                 self.map[i][j] in BLACK_FIGURES and self.turn == TURN_BLACK
         ):
@@ -91,6 +94,7 @@ class Game:
             return self._get_available_moves3(i, j)
         if self.map[i][j] in TYPE4:
             return self._get_available_moves4(i, j)
+        return []
 
     def _friends_near(self, i, j):
         result = 0
@@ -161,7 +165,7 @@ class Game:
         return result
 
 
-if __name__ == '__main__':
+def main():
     from pprint import pprint
 
     game = Game(
@@ -190,3 +194,7 @@ if __name__ == '__main__':
         pprint(game.available_moves)
         i, j = [int(n) for n in input('i, j: ').split()]
         pprint(game.press_cell(i, j))
+
+
+if __name__ == '__main__':
+    main()

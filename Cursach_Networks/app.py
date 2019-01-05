@@ -1,3 +1,4 @@
+import random
 import select
 import socket
 
@@ -25,7 +26,8 @@ class Application(QMainWindow):
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.connect((const.SERVER_IP, const.SERVER_PORT))
 
-        self.own_server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.own_server_socket = socket.socket(
+            socket.AF_INET, socket.SOCK_STREAM)
         self.own_server_socket.bind((self.server_socket.getsockname()[0], 0))
         self.own_server_socket.listen()
 
@@ -34,13 +36,15 @@ class Application(QMainWindow):
         self.selected_sockets = []
 
         self.go_back_func = None
+        self.timer_id = None
 
         self.map = None
 
         self.setFixedSize(1200, 800)
-        self.move(400, 100)
+        self.move(400 + random.randint(-100, 100), 100 + random.randint(-50, 50))
         self.show_content_main_not_signed()
-        self.setWindowTitle('Курсовой проект по компьютерным сетям Шилов ИУ7-72')
+        self.setWindowTitle(
+            'Курсовой проект по компьютерным сетям Шилов ИУ7-72')
 
     # contents
 
@@ -51,7 +55,8 @@ class Application(QMainWindow):
         self.setCentralWidget(content_main.ContentMain(self))
 
     def show_content_main_not_signed(self):
-        self.setCentralWidget(content_main_not_signed.ContentMainNotSigned(self))
+        self.setCentralWidget(
+            content_main_not_signed.ContentMainNotSigned(self))
 
     def show_content_game(self):
         self.setCentralWidget(content_game.ContentGame(self))
@@ -116,8 +121,10 @@ class Application(QMainWindow):
             self.selected_sockets.append(self.own_server_socket)
             self.show_content_waiting()
         else:
-            self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-            self.client_socket.connect((data['socket']['ip'], data['socket']['port']))
+            self.client_socket = socket.socket(
+                socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket.connect(
+                (data['socket']['ip'], data['socket']['port']))
             self.selected_sockets.append(self.client_socket)
             self.map = data['map']
             protocol.send_data(
@@ -182,10 +189,7 @@ class Application(QMainWindow):
         self.show()
         self.qapp.exec_()
 
-    def closeEvent (self, e):
-        e.accept()
-
-    def timerEvent(self, e):
+    def timerEvent(self, event):
         rlst, _, _ = select.select(
             self.selected_sockets, [], [], 0
         )

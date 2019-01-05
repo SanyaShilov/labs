@@ -9,9 +9,10 @@ OK = widgets.MessageBox.Ok
 def sure_to_give_up(app):
     messagebox = widgets.MessageBox(app)
     messagebox.setWindowTitle('Give up')
-    messagebox.setInformativeText('Are you sure? You will automatically loose this game')
+    messagebox.setInformativeText(
+        'Are you sure? You will automatically loose this game')
     messagebox.setStandardButtons(widgets.MessageBox.Yes |
-                                       widgets.MessageBox.No)
+                                  widgets.MessageBox.No)
     messagebox.setDefaultButton(widgets.MessageBox.No)
     return messagebox.exec()
 

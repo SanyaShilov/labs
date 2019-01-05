@@ -3,6 +3,10 @@
 import app as app_module
 
 
-if __name__ == '__main__':
+def main():
     app = app_module.Application()
     app.start()
+
+
+if __name__ == '__main__':
+    main()

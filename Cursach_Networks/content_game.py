@@ -68,16 +68,24 @@ class ContentGame(widgets.Content):
     def paint_grid(self):
         self.qp.setPen(Qt.black)
         for i in range(self.game.height):
-            self.qp.drawLine(0, i * self.cellsize, self.height(), i * self.cellsize)
+            self.qp.drawLine(
+                0,
+                i * self.cellsize,
+                self.height(),
+                i * self.cellsize)
         for i in range(self.game.width):
-            self.qp.drawLine(i * self.cellsize, 0, i * self.cellsize, self.width())
+            self.qp.drawLine(
+                i * self.cellsize,
+                0,
+                i * self.cellsize,
+                self.width())
 
     def set_cell_color(self, i, j):
         celltype = self.game.map[i][j]
         if celltype == game.EMPTY:
-            self.qp.setBrush(Qt.NoBrush)
+            self.qp.setBrush(Qt.lightGray)
         elif celltype == game.BLOCK:
-            self.qp.setBrush(Qt.black)
+            self.qp.setBrush(Qt.darkGray)
         elif celltype in game.TYPE1:
             self.qp.setBrush(Qt.green)
         elif celltype in game.TYPE2:
@@ -145,8 +153,12 @@ class ContentGame(widgets.Content):
         self.qp.end()
 
 
-if __name__ == '__main__':
+def main():
     qapp = QApplication([])
-    wtf = ContentGame(FakeApp())
-    wtf.show()
+    content = ContentGame(FakeApp())
+    content.show()
     qapp.exec_()
+
+
+if __name__ == '__main__':
+    main()
