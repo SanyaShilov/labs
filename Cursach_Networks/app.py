@@ -1,16 +1,15 @@
 import select
 import socket
 
-from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
 
 import const
 import protocol
 
 import content_champions
+import content_game
 import content_main
 import content_main_not_signed
-import content_play
 import content_register
 import content_sign_in
 import content_waiting
@@ -19,7 +18,7 @@ import messageboxes
 
 
 class Application(QMainWindow):
-    def __init__ (self):
+    def __init__(self):
         self.qapp = QApplication([])
         super().__init__()
 
@@ -35,7 +34,8 @@ class Application(QMainWindow):
         self.selected_sockets = []
 
         self.go_back_func = None
-        self.login = None
+
+        self.map = None
 
         self.setFixedSize(1200, 800)
         self.move(400, 100)
@@ -53,8 +53,8 @@ class Application(QMainWindow):
     def show_content_main_not_signed(self):
         self.setCentralWidget(content_main_not_signed.ContentMainNotSigned(self))
 
-    def show_content_play(self):
-        self.setCentralWidget(content_play.ContentPlay(self))
+    def show_content_game(self):
+        self.setCentralWidget(content_game.ContentGame(self))
 
     def show_content_register(self):
         self.setCentralWidget(content_register.ContentRegister(self))
@@ -119,7 +119,15 @@ class Application(QMainWindow):
             self.client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.connect((data['socket']['ip'], data['socket']['port']))
             self.selected_sockets.append(self.client_socket)
-            self.show_content_play()
+            self.map = data['map']
+            protocol.send_data(
+                self.client_socket,
+                {
+                    'command': 'LOAD_MAP',
+                    'map': self.map
+                }
+            )
+            self.show_content_game()
         self.timer_id = self.startTimer(100)
 
     def remove_client_socket(self):
@@ -149,10 +157,15 @@ class Application(QMainWindow):
         self.selected_sockets.remove(self.own_server_socket)
         self.show_content_main()
 
+    def load_map(self, data):
+        self.map = data['map']
+        self.show_content_game()
+
     # other
 
     def execute_command(self, data):
-        command = data['command']
+        if data['command'] == 'LOAD_MAP':
+            self.load_map(data)
 
     def go(self, func, go_back_func):
         def _go():
@@ -173,7 +186,7 @@ class Application(QMainWindow):
         e.accept()
 
     def timerEvent(self, e):
-        rlst, wlst, xlst = select.select(
+        rlst, _, _ = select.select(
             self.selected_sockets, [], [], 0
         )
         for socket in rlst:
@@ -181,10 +194,8 @@ class Application(QMainWindow):
                 self.client_socket = socket.accept()[0]
                 self.selected_sockets.append(self.client_socket)
                 self.selected_sockets.remove(self.own_server_socket)
-                self.show_content_play()
             else:
                 data = protocol.recv_data(socket)
-                print(data)
                 if data is None:
                     self.recv_give_up()
                 else:
