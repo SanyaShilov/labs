@@ -15,6 +15,8 @@ import content_register
 import content_sign_in
 import content_waiting
 
+import game
+
 import messageboxes
 
 
@@ -38,7 +40,12 @@ class Application(QMainWindow):
         self.go_back_func = None
         self.timer_id = None
 
+        self.login = None
+        self.opponent = None
+        self.color = None
+        self.opponent_color = None
         self.map = None
+        self.game = None
 
         self.setFixedSize(1200, 800)
         self.move(400 + random.randint(-100, 100), 100 + random.randint(-50, 50))
@@ -83,6 +90,7 @@ class Application(QMainWindow):
         )
         data = protocol.recv_data(self.server_socket)
         if data['status'] == 'ok':
+            self.login = login
             self.show_content_main()
 
     def register(self, login, password):
@@ -96,6 +104,7 @@ class Application(QMainWindow):
         )
         data = protocol.recv_data(self.server_socket)
         if data['status'] == 'ok':
+            self.login = login
             self.show_content_main()
 
     def sign_out(self):
@@ -105,6 +114,7 @@ class Application(QMainWindow):
                 'command': 'SIGN_OUT',
             }
         )
+        self.login = None
         self.show_content_main_not_signed()
 
     def want_to_play(self):
@@ -114,24 +124,32 @@ class Application(QMainWindow):
                 'command': 'WANT_TO_PLAY',
                 'ip': self.own_server_socket.getsockname()[0],
                 'port': self.own_server_socket.getsockname()[1],
+                'login': self.login
             }
         )
         data = protocol.recv_data(self.server_socket)
         if data['status'] == 'wait':
+            self.color = 'white'
+            self.opponent_color = 'black'
             self.selected_sockets.append(self.own_server_socket)
             self.show_content_waiting()
         else:
+            self.color = 'black'
+            self.opponent_color = 'white'
             self.client_socket = socket.socket(
                 socket.AF_INET, socket.SOCK_STREAM)
             self.client_socket.connect(
-                (data['socket']['ip'], data['socket']['port']))
+                (data['player']['ip'], data['player']['port']))
             self.selected_sockets.append(self.client_socket)
-            self.map = data['map']
+            self.game = game.Game(**data['map'])
+            self.game.locked = True
+            self.opponent = data['player']['login']
             protocol.send_data(
                 self.client_socket,
                 {
-                    'command': 'LOAD_MAP',
-                    'map': self.map
+                    'command': 'START_PLAY',
+                    'map': data['map'],
+                    'opponent': self.login
                 }
             )
             self.show_content_game()
@@ -164,15 +182,51 @@ class Application(QMainWindow):
         self.selected_sockets.remove(self.own_server_socket)
         self.show_content_main()
 
-    def load_map(self, data):
-        self.map = data['map']
+    def start_play(self, data):
+        self.game = game.Game(**data['map'])
+        self.opponent = data['opponent']
         self.show_content_game()
+
+    def handle_press_cell(self, result):
+        if result['result'] == 'MOVE':
+            self.game.locked = True
+            data = {
+                'command': 'MOVE',
+                'from': result['from'],
+                'to': result['to']
+            }
+            if (
+                    self.color == 'white' and self.game.white_win() or
+                    self.color == 'black' and self.game.black_win()
+            ):
+                data['command'] = 'WIN'
+            protocol.send_data(self.client_socket, data)
+            if data['command'] == 'WIN':
+                self.remove_client_socket()
+                messageboxes.win(self)
+                self.show_content_main()
+
+    def handle_move(self, data):
+        self.game.locked = False
+        self.game.press_cell(*data['from'])
+        self.game.press_cell(*data['to'])
+        self.content_game.repaint()
+
+    def handle_loose(self, data):
+        self.handle_move(data)
+        self.remove_client_socket()
+        messageboxes.loose(self)
+        self.show_content_main()
 
     # other
 
     def execute_command(self, data):
-        if data['command'] == 'LOAD_MAP':
-            self.load_map(data)
+        if data['command'] == 'START_PLAY':
+            self.start_play(data)
+        if data['command'] == 'MOVE':
+            self.handle_move(data)
+        if data['command'] == 'WIN':
+            self.handle_loose(data)
 
     def go(self, func, go_back_func):
         def _go():

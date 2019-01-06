@@ -8,9 +8,13 @@ FONT = QFont('Times New Roman', 24, 1)
 
 
 class Content(QWidget):
-    def __init__(self, app):
-        super().__init__()
+    def __init__(self, app, parent=None):
+        super().__init__(parent=parent)
         self.app = app
+        if self.app.login:
+            self.login_lbl = Label(
+                app.login, self, 200, 50, 900, 50, alignment='center'
+            )
 
 
 class PushButton(QPushButton):

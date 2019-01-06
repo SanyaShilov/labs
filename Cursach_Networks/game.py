@@ -28,6 +28,7 @@ class Game:
         self.turn = TURN_WHITE
         self.selected_cell = None
         self.available_moves = []
+        self.locked = False
 
     def white_win(self):
         for i in range(self.height):
@@ -46,6 +47,8 @@ class Game:
         return True
 
     def press_cell(self, i, j):
+        if self.locked:
+            return {'result': 'NULL'}
         if self.selected_cell:
             if [i, j] in self.available_moves:
                 return self._move(i, j)
@@ -68,7 +71,7 @@ class Game:
         self.map[si][sj] = EMPTY
         self._deselect()
         self._change_turn()
-        return {'result': 'MOVE'}
+        return {'result': 'MOVE', 'from': [si, sj], 'to': [i, j]}
 
     def _select(self, i, j):
         self.available_moves = self._get_available_moves(i, j)

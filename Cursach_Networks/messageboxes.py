@@ -24,3 +24,21 @@ def opponent_give_up(app):
     messagebox.setStandardButtons(widgets.MessageBox.Ok)
     messagebox.setDefaultButton(widgets.MessageBox.Ok)
     return messagebox.exec()
+
+
+def loose(app):
+    messagebox = widgets.MessageBox(app)
+    messagebox.setWindowTitle('Loose')
+    messagebox.setInformativeText('You loose!')
+    messagebox.setStandardButtons(widgets.MessageBox.Ok)
+    messagebox.setDefaultButton(widgets.MessageBox.Ok)
+    return messagebox.exec()
+
+
+def win(app):
+    messagebox = widgets.MessageBox(app)
+    messagebox.setWindowTitle('Win')
+    messagebox.setInformativeText('You win!')
+    messagebox.setStandardButtons(widgets.MessageBox.Ok)
+    messagebox.setDefaultButton(widgets.MessageBox.Ok)
+    return messagebox.exec()

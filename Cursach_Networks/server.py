@@ -112,10 +112,10 @@ def create_db():
                 [0, 0, 0, 0, 0, 0, 5, 5],
             ],
             'white_winning_position': [
-                [6, 6], [6, 7], [7, 6], [7, 7]
+                [0, 0], [0, 1], [1, 0], [2, 0]
             ],
             'black_winning_position': [
-                [0, 0], [0, 1], [1, 0], [1, 1]
+                # [0, 0], [0, 1], [1, 0], [1, 1]
             ]
         }
     )
@@ -129,7 +129,7 @@ class Server:
         self.socket.setsockopt(socketlib.SOL_SOCKET, socketlib.SO_REUSEADDR, 1)
         self.socket.bind((const.SERVER_IP, const.SERVER_PORT))
         self.client_sockets = []
-        self.waiting_socket = None
+        self.waiting_player = None
         self.users_online = {}  # socket.fileno(): user
         self.db = create_db()
 
@@ -227,10 +227,11 @@ class Server:
             del self.users_online[socket.fileno()]
 
     def handle_want_to_play(self, socket, data):
-        if not self.waiting_socket:
-            self.waiting_socket = {
+        if not self.waiting_player:
+            self.waiting_player = {
                 'ip': data['ip'],
-                'port': data['port']
+                'port': data['port'],
+                'login': data['login']
             }
             protocol.send_data(socket, {'status': 'wait'})
         else:
@@ -240,14 +241,14 @@ class Server:
                 socket,
                 {
                     'status': 'ok',
-                    'socket': self.waiting_socket,
+                    'player': self.waiting_player,
                     'map': map,
                 }
             )
-            self.waiting_socket = None
+            self.waiting_player = None
 
     def handle_dont_want_to_play(self, socket, data):
-        self.waiting_socket = None
+        self.waiting_player = None
 
 
 def main():

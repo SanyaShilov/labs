@@ -1,4 +1,4 @@
-from PyQt5.QtWidgets import QApplication
+from PyQt5.QtWidgets import QApplication, QWidget
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import Qt
 
@@ -8,7 +8,7 @@ import widgets
 
 class FakeApp:
     def __init__(self):
-        self.map = {
+        map = {
             'map': [
                 [1, 1, 0, 0, 0, 0, 0, 0],
                 [1, 1, 0, 0, 0, 0, 0, 0],
@@ -26,6 +26,11 @@ class FakeApp:
                 [0, 0], [0, 1], [1, 0], [1, 1]
             ]
         }
+        self.game = game.Game(**map)
+        self.login = 'test login'
+        self.opponent = 'test opponent'
+        self.color = 'white'
+        self.opponent_color = 'black'
 
     @staticmethod
     def width():
@@ -35,11 +40,28 @@ class FakeApp:
     def height():
         return 800
 
+    def handle_press_cell(self, result):
+        pass
+
 
 class ContentGame(widgets.Content):
     def __init__(self, app):
         super().__init__(app)
-        self.game = game.Game(**app.map)
+        self.content = _ContentGame(app, self)
+        self.content.move(0, 0)
+        self.setFixedSize(self.content.width() + 400, self.content.height())
+        self.color_lbl = widgets.Label('({})'.format(app.color), self, 200, 50, 900, 100, alignment='center')
+        self.vs_lbl = widgets.Label('playing vs.', self, 200, 50, 900, 150, alignment='center')
+        self.opponent_lbl = widgets.Label(app.opponent, self, 200, 50, 900, 200, alignment='center')
+        self.opponent_color_lbl = widgets.Label('({})'.format(app.opponent_color), self, 200, 50, 900, 250, alignment='center')
+
+
+class _ContentGame(QWidget):
+    def __init__(self, app, parent=None):
+        super().__init__(parent=parent)
+        self.app = app
+        self.game = app.game
+        self.app.content_game = self
 
         self.cellsize = min(app.width() // self.game.width,
                             app.height() // self.game.height)
@@ -57,8 +79,8 @@ class ContentGame(widgets.Content):
                          self.cellsize, self.cellsize)
 
     def paint_flag(self, i, j):
-        self.qp.drawRect(j * self.cellsize, i * self.cellsize,
-                         self.cellsize4, self.cellsize4)
+        self.qp.drawRect(j * self.cellsize + self.cellsize3, i * self.cellsize + self.cellsize3,
+                         self.cellsize3, self.cellsize3)
 
     def paint_winning_cell(self, i, j):
         self.qp.drawRect(j * self.cellsize,
@@ -101,6 +123,10 @@ class ContentGame(widgets.Content):
             for j in range(self.game.width):
                 self.set_cell_color(i, j)
                 self.paint_cell(i, j)
+
+    def paint_flags(self):
+        for i in range(self.game.height):
+            for j in range(self.game.width):
                 if self.game.map[i][j] in game.WHITE_FIGURES:
                     self.qp.setBrush(Qt.white)
                     self.paint_flag(i, j)
@@ -118,8 +144,9 @@ class ContentGame(widgets.Content):
 
     def mousePressEvent(self, event):
         i, j = self.pressed_cell(event)
-        self.game.press_cell(i, j)
+        result = self.game.press_cell(i, j)
         self.repaint()
+        self.app.handle_press_cell(result)
 
     def pressed_cell(self, event):
         pos = event.pos()
@@ -150,6 +177,7 @@ class ContentGame(widgets.Content):
         if self.game.selected_cell:
             self.paint_selected_cell()
             self.paint_available_moves()
+        self.paint_flags()
         self.qp.end()
 
 
