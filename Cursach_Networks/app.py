@@ -155,20 +155,14 @@ class Application(QMainWindow):
             self.show_content_game()
         self.timer_id = self.startTimer(100)
 
-    def remove_client_socket(self):
-        if self.client_socket in self.selected_sockets:
-            self.selected_sockets.remove(self.client_socket)
-        self.client_socket.close()
-        self.client_socket = None
-
     def recv_give_up(self):
-        self.remove_client_socket()
+        self.clear()
         messageboxes.opponent_give_up(self)
         self.show_content_main()
 
     def send_give_up(self):
         if messageboxes.sure_to_give_up(self) == messageboxes.YES:
-            self.remove_client_socket()
+            self.clear()
             self.show_content_main()
 
     def dont_want_to_play(self):
@@ -178,8 +172,7 @@ class Application(QMainWindow):
                 'command': 'DONT_WANT_TO_PLAY'
             }
         )
-        self.killTimer(self.timer_id)
-        self.selected_sockets.remove(self.own_server_socket)
+        self.clear()
         self.show_content_main()
 
     def start_play(self, data):
@@ -190,6 +183,7 @@ class Application(QMainWindow):
     def handle_press_cell(self, result):
         if result['result'] == 'MOVE':
             self.game.locked = True
+            self.content_game.repaint()
             data = {
                 'command': 'MOVE',
                 'from': result['from'],
@@ -202,7 +196,7 @@ class Application(QMainWindow):
                 data['command'] = 'WIN'
             protocol.send_data(self.client_socket, data)
             if data['command'] == 'WIN':
-                self.remove_client_socket()
+                self.clear()
                 messageboxes.win(self)
                 self.show_content_main()
 
@@ -214,11 +208,18 @@ class Application(QMainWindow):
 
     def handle_loose(self, data):
         self.handle_move(data)
-        self.remove_client_socket()
+        self.clear()
         messageboxes.loose(self)
         self.show_content_main()
 
     # other
+
+    def clear(self):
+        self.killTimer(self.timer_id)
+        self.selected_sockets.clear()
+        if self.client_socket:
+            self.client_socket.close()
+            self.client_socket = None
 
     def execute_command(self, data):
         if data['command'] == 'START_PLAY':

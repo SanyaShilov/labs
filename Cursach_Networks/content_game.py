@@ -47,6 +47,7 @@ class FakeApp:
 class ContentGame(widgets.Content):
     def __init__(self, app):
         super().__init__(app)
+        self.app.content_game = self
         self.content = _ContentGame(app, self)
         self.content.move(0, 0)
         self.setFixedSize(self.content.width() + 400, self.content.height())
@@ -54,6 +55,21 @@ class ContentGame(widgets.Content):
         self.vs_lbl = widgets.Label('playing vs.', self, 200, 50, 900, 150, alignment='center')
         self.opponent_lbl = widgets.Label(app.opponent, self, 200, 50, 900, 200, alignment='center')
         self.opponent_color_lbl = widgets.Label('({})'.format(app.opponent_color), self, 200, 50, 900, 250, alignment='center')
+        self.turn_lbl = widgets.Label('', self, 200, 50, 900, 400, alignment='center')
+
+        self.give_up_btn = widgets.PushButton(
+            'Give up', self, 200, 100, 900, 600,
+            app.send_give_up
+        )
+
+        self.repaint()
+
+    def repaint(self):
+        self.content.repaint()
+        if self.content.game.locked:
+            self.turn_lbl.setText('Opponent turn')
+        else:
+            self.turn_lbl.setText('Your turn')
 
 
 class _ContentGame(QWidget):
@@ -61,7 +77,6 @@ class _ContentGame(QWidget):
         super().__init__(parent=parent)
         self.app = app
         self.game = app.game
-        self.app.content_game = self
 
         self.cellsize = min(app.width() // self.game.width,
                             app.height() // self.game.height)

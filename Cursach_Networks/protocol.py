@@ -13,7 +13,10 @@ def convert_bytes_to_length(bytes):
 
 
 def recv_data(sock):
-    data = sock.recv(N)
+    try:
+        data = sock.recv(N)
+    except Exception:
+        data = None
     if not data:
         return None
     length = convert_bytes_to_length(data)
