@@ -6,39 +6,37 @@ NO = widgets.MessageBox.No
 OK = widgets.MessageBox.Ok
 
 
-def sure_to_give_up(app):
-    messagebox = widgets.MessageBox(app)
-    messagebox.setWindowTitle('Give up')
-    messagebox.setInformativeText(
-        'Are you sure? You will automatically loose this game')
-    messagebox.setStandardButtons(widgets.MessageBox.Yes |
-                                  widgets.MessageBox.No)
-    messagebox.setDefaultButton(widgets.MessageBox.No)
-    return messagebox.exec()
+def sure_to_give_up():
+    return widgets.MessageBox(
+        title='Give up',
+        text='Are you sure? You will automatically loose this game',
+        standard_buttons=YES | NO,
+        default_button=NO
+    ).exec()
 
 
-def opponent_give_up(app):
-    messagebox = widgets.MessageBox(app)
-    messagebox.setWindowTitle('Win')
-    messagebox.setInformativeText('You win! Your opponent gave up')
-    messagebox.setStandardButtons(widgets.MessageBox.Ok)
-    messagebox.setDefaultButton(widgets.MessageBox.Ok)
-    return messagebox.exec()
+def opponent_give_up():
+    return widgets.MessageBox(
+        title='Win',
+        text='You win! Your opponent give up',
+        standard_buttons=OK,
+        default_button=OK
+    ).exec()
 
 
-def loose(app):
-    messagebox = widgets.MessageBox(app)
-    messagebox.setWindowTitle('Loose')
-    messagebox.setInformativeText('You loose!')
-    messagebox.setStandardButtons(widgets.MessageBox.Ok)
-    messagebox.setDefaultButton(widgets.MessageBox.Ok)
-    return messagebox.exec()
+def loose():
+    return widgets.MessageBox(
+        title='Loose',
+        text='You loose!',
+        standard_buttons=OK,
+        default_button=OK
+    ).exec()
 
 
-def win(app):
-    messagebox = widgets.MessageBox(app)
-    messagebox.setWindowTitle('Win')
-    messagebox.setInformativeText('You win!')
-    messagebox.setStandardButtons(widgets.MessageBox.Ok)
-    messagebox.setDefaultButton(widgets.MessageBox.Ok)
-    return messagebox.exec()
+def win():
+    return widgets.MessageBox(
+        title='Win',
+        text='You win!',
+        standard_buttons=OK,
+        default_button=OK
+    ).exec()

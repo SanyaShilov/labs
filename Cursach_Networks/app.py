@@ -23,14 +23,14 @@ import messageboxes
 class Application(QMainWindow):
     def __init__(self):
         self.qapp = QApplication([])
-        super().__init__()
+        QMainWindow.__init__(self)
 
         self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.server_socket.connect((const.SERVER_IP, const.SERVER_PORT))
 
         self.own_server_socket = socket.socket(
             socket.AF_INET, socket.SOCK_STREAM)
-        self.own_server_socket.bind((self.server_socket.getsockname()[0], 0))
+        self.own_server_socket.bind(('', 0))
         self.own_server_socket.listen()
 
         self.client_socket = None
@@ -48,7 +48,7 @@ class Application(QMainWindow):
         self.game = None
 
         self.setFixedSize(1200, 800)
-        self.move(400 + random.randint(-100, 100), 100 + random.randint(-50, 50))
+        self.move(400 + random.randint(-200, 200), 100 + random.randint(-100, 100))
         self.show_content_main_not_signed()
         self.setWindowTitle(
             'Курсовой проект по компьютерным сетям Шилов ИУ7-72')
@@ -157,11 +157,11 @@ class Application(QMainWindow):
 
     def recv_give_up(self):
         self.clear()
-        messageboxes.opponent_give_up(self)
+        messageboxes.opponent_give_up()
         self.show_content_main()
 
     def send_give_up(self):
-        if messageboxes.sure_to_give_up(self) == messageboxes.YES:
+        if messageboxes.sure_to_give_up() == messageboxes.YES:
             self.clear()
             self.show_content_main()
 
@@ -197,7 +197,7 @@ class Application(QMainWindow):
             protocol.send_data(self.client_socket, data)
             if data['command'] == 'WIN':
                 self.clear()
-                messageboxes.win(self)
+                messageboxes.win()
                 self.show_content_main()
 
     def handle_move(self, data):
@@ -209,7 +209,7 @@ class Application(QMainWindow):
     def handle_loose(self, data):
         self.handle_move(data)
         self.clear()
-        messageboxes.loose(self)
+        messageboxes.loose()
         self.show_content_main()
 
     # other

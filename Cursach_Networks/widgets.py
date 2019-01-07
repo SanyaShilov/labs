@@ -2,7 +2,8 @@ from PyQt5.QtGui import QFont
 from PyQt5.QtCore import Qt
 from PyQt5.QtWidgets import (QWidget, QLabel, QLineEdit,
                              QPushButton, QTableWidget, QTableWidgetItem,
-                             QMessageBox, QComboBox, QTextEdit)
+                             QMessageBox)
+
 
 FONT = QFont('Times New Roman', 24, 1)
 
@@ -48,18 +49,6 @@ class Label(QLabel):
                 self.setAlignment(Qt.AlignCenter)
 
 
-class TextEdit(QTextEdit):
-    def __init__(self, string='', parent=None,
-                 width=None, height=None,
-                 pos_x=None, pos_y=None):
-        super().__init__(string, parent)
-        self.setFont(FONT)
-        if width is not None and height is not None:
-            self.setFixedSize(width, height)
-        if pos_x is not None and pos_y is not None:
-            self.move(pos_x, pos_y)
-
-
 class LineEdit(QLineEdit):
     def __init__(self, string='', parent=None,
                  width=None, height=None,
@@ -72,20 +61,14 @@ class LineEdit(QLineEdit):
             self.move(pos_x, pos_y)
 
 
-class List(QComboBox):
-    def __init__(self, parent=None,
-                 width=None, height=None,
-                 pos_x=None, pos_y=None):
-        super().__init__(parent)
-        self.setFont(FONT)
-        if width is not None and height is not None:
-            self.setFixedSize(width, height)
-        if pos_x is not None and pos_y is not None:
-            self.move(pos_x, pos_y)
-
-
 class MessageBox(QMessageBox):
-    pass
+    def __init__(self, title='', text='',
+                 standard_buttons=0, default_button=0):
+        super().__init__()
+        self.setWindowTitle(title)
+        self.setInformativeText(text)
+        self.setStandardButtons(standard_buttons)
+        self.setDefaultButton(default_button)
 
 
 class Item(QTableWidgetItem):
