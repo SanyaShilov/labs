@@ -166,38 +166,3 @@ class Game:
             if l > 2:
                 result.append([i + dx * l, j + dy * l])
         return result
-
-
-def main():
-    from pprint import pprint
-
-    game = Game(
-        **{
-            'map': [
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 5, 5],
-                [0, 0, 0, 0, 0, 0, 5, 5],
-            ],
-            'white_winning_position': [
-                [6, 6], [6, 7], [7, 6], [7, 7]
-            ],
-            'black_winning_position': [
-                [0, 0], [0, 1], [1, 0], [1, 1]
-            ]
-        }
-    )
-    while True:
-        pprint(game.map)
-        pprint(game.selected_cell)
-        pprint(game.available_moves)
-        i, j = [int(n) for n in input('i, j: ').split()]
-        pprint(game.press_cell(i, j))
-
-
-if __name__ == '__main__':
-    main()

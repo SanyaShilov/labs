@@ -25,4 +25,4 @@ class ContentRegister(widgets.Content):
     def register(self):
         login = self.login_lineedit.text()
         password = self.password_lineedit.text()
-        self.app.register(login, password)
+        self.app.send_register(login, password)

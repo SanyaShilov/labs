@@ -1,10 +1,10 @@
+#!/usr/bin/python3.6
+
 import random
-import select
-import socket
+import socket as socketlib
 
 from PyQt5.QtWidgets import (QApplication, QMainWindow)
 
-import const
 import protocol
 
 import content_champions
@@ -20,25 +20,21 @@ import game
 import messageboxes
 
 
-class Application(QMainWindow):
+class Application(QMainWindow, protocol.Participant):
     def __init__(self):
         self.qapp = QApplication([])
         QMainWindow.__init__(self)
+        protocol.Participant.__init__(self)
 
-        self.server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-        self.server_socket.connect((const.SERVER_IP, const.SERVER_PORT))
-
-        self.own_server_socket = socket.socket(
-            socket.AF_INET, socket.SOCK_STREAM)
-        self.own_server_socket.bind(('', 0))
-        self.own_server_socket.listen()
+        self.server_socket = socketlib.socket(
+            socketlib.AF_INET, socketlib.SOCK_STREAM
+        )
+        self.server_socket.connect((protocol.SERVER_IP, protocol.SERVER_PORT))
 
         self.client_socket = None
 
-        self.selected_sockets = []
-
         self.go_back_func = None
-        self.timer_id = None
+        self.timer_id = self.startTimer(100)
 
         self.login = None
         self.opponent = None
@@ -48,12 +44,14 @@ class Application(QMainWindow):
         self.game = None
 
         self.setFixedSize(1200, 800)
-        self.move(400 + random.randint(-200, 200), 100 + random.randint(-100, 100))
+        self.move(
+            400 + random.randint(-200, 200), 100 + random.randint(-100, 100)
+        )
         self.show_content_main_not_signed()
         self.setWindowTitle(
             'Курсовой проект по компьютерным сетям Шилов ИУ7-72')
 
-    # contents
+    # show content
 
     def show_content_champions(self):
         self.setCentralWidget(content_champions.ContentChampions(self))
@@ -77,10 +75,10 @@ class Application(QMainWindow):
     def show_content_waiting(self):
         self.setCentralWidget(content_waiting.ContentWaiting(self))
 
-    # actions
+    # send command
 
-    def sign_in(self, login, password):
-        protocol.send_data(
+    def send_sign_in(self, login, password):
+        self.send_data(
             self.server_socket,
             {
                 'command': 'SIGN_IN',
@@ -88,13 +86,13 @@ class Application(QMainWindow):
                 'password': password
             }
         )
-        data = protocol.recv_data(self.server_socket)
+        data = self.recv_data(self.server_socket)
         if data['status'] == 'ok':
             self.login = login
             self.show_content_main()
 
-    def register(self, login, password):
-        protocol.send_data(
+    def send_register(self, login, password):
+        self.send_data(
             self.server_socket,
             {
                 'command': 'REGISTER',
@@ -102,13 +100,13 @@ class Application(QMainWindow):
                 'password': password
             }
         )
-        data = protocol.recv_data(self.server_socket)
+        data = self.recv_data(self.server_socket)
         if data['status'] == 'ok':
             self.login = login
             self.show_content_main()
 
-    def sign_out(self):
-        protocol.send_data(
+    def send_sign_out(self):
+        self.send_data(
             self.server_socket,
             {
                 'command': 'SIGN_OUT',
@@ -117,34 +115,33 @@ class Application(QMainWindow):
         self.login = None
         self.show_content_main_not_signed()
 
-    def want_to_play(self):
-        protocol.send_data(
+    def send_want_to_play(self):
+        self.send_data(
             self.server_socket,
             {
                 'command': 'WANT_TO_PLAY',
-                'ip': self.own_server_socket.getsockname()[0],
-                'port': self.own_server_socket.getsockname()[1],
+                'ip': self.listening_socket.getsockname()[0],
+                'port': self.listening_socket.getsockname()[1],
                 'login': self.login
             }
         )
-        data = protocol.recv_data(self.server_socket)
+        data = self.recv_data(self.server_socket)
         if data['status'] == 'wait':
             self.color = 'white'
             self.opponent_color = 'black'
-            self.selected_sockets.append(self.own_server_socket)
             self.show_content_waiting()
         else:
             self.color = 'black'
             self.opponent_color = 'white'
-            self.client_socket = socket.socket(
-                socket.AF_INET, socket.SOCK_STREAM)
+            self.client_socket = socketlib.socket(
+                socketlib.AF_INET, socketlib.SOCK_STREAM)
             self.client_socket.connect(
                 (data['player']['ip'], data['player']['port']))
             self.selected_sockets.append(self.client_socket)
             self.game = game.Game(**data['map'])
             self.game.locked = True
             self.opponent = data['player']['login']
-            protocol.send_data(
+            self.send_data(
                 self.client_socket,
                 {
                     'command': 'START_PLAY',
@@ -153,20 +150,14 @@ class Application(QMainWindow):
                 }
             )
             self.show_content_game()
-        self.timer_id = self.startTimer(100)
-
-    def recv_give_up(self):
-        self.clear()
-        messageboxes.opponent_give_up()
-        self.show_content_main()
 
     def send_give_up(self):
         if messageboxes.sure_to_give_up() == messageboxes.YES:
             self.clear()
             self.show_content_main()
 
-    def dont_want_to_play(self):
-        protocol.send_data(
+    def send_dont_want_to_play(self):
+        self.send_data(
             self.server_socket,
             {
                 'command': 'DONT_WANT_TO_PLAY'
@@ -174,11 +165,6 @@ class Application(QMainWindow):
         )
         self.clear()
         self.show_content_main()
-
-    def start_play(self, data):
-        self.game = game.Game(**data['map'])
-        self.opponent = data['opponent']
-        self.show_content_game()
 
     def handle_press_cell(self, result):
         if result['result'] == 'MOVE':
@@ -193,21 +179,36 @@ class Application(QMainWindow):
                     self.color == 'white' and self.game.white_win() or
                     self.color == 'black' and self.game.black_win()
             ):
-                data['command'] = 'WIN'
-            protocol.send_data(self.client_socket, data)
-            if data['command'] == 'WIN':
+                data['command'] = 'LOOSE'
+            self.send_data(self.client_socket, data)
+            if data['command'] == 'LOOSE':
                 self.clear()
                 messageboxes.win()
                 self.show_content_main()
 
-    def handle_move(self, data):
+    # execute command
+
+    def execute_command(self, socket, data):
+        if data['command'] == 'START_PLAY':
+            self.execute_start_play(data)
+        if data['command'] == 'MOVE':
+            self.execute_move(data)
+        if data['command'] == 'LOOSE':
+            self.execute_loose(data)
+
+    def execute_start_play(self, data):
+        self.game = game.Game(**data['map'])
+        self.opponent = data['opponent']
+        self.show_content_game()
+
+    def execute_move(self, data):
         self.game.locked = False
         self.game.press_cell(*data['from'])
         self.game.press_cell(*data['to'])
         self.content_game.repaint()
 
-    def handle_loose(self, data):
-        self.handle_move(data)
+    def execute_loose(self, data):
+        self.execute_move(data)
         self.clear()
         messageboxes.loose()
         self.show_content_main()
@@ -215,19 +216,10 @@ class Application(QMainWindow):
     # other
 
     def clear(self):
-        self.killTimer(self.timer_id)
         self.selected_sockets.clear()
         if self.client_socket:
             self.client_socket.close()
             self.client_socket = None
-
-    def execute_command(self, data):
-        if data['command'] == 'START_PLAY':
-            self.start_play(data)
-        if data['command'] == 'MOVE':
-            self.handle_move(data)
-        if data['command'] == 'WIN':
-            self.handle_loose(data)
 
     def go(self, func, go_back_func):
         def _go():
@@ -245,17 +237,28 @@ class Application(QMainWindow):
         self.qapp.exec_()
 
     def timerEvent(self, event):
-        rlst, _, _ = select.select(
-            self.selected_sockets, [], [], 0
-        )
-        for socket in rlst:
-            if socket.fileno() == self.own_server_socket.fileno():
-                self.client_socket = socket.accept()[0]
-                self.selected_sockets.append(self.client_socket)
-                self.selected_sockets.remove(self.own_server_socket)
+        self.select(0)
+
+    def closeEvent(self, event):
+        if self.client_socket:
+            if messageboxes.sure_to_give_up() == messageboxes.YES:
+                event.accept()
             else:
-                data = protocol.recv_data(socket)
-                if data is None:
-                    self.recv_give_up()
-                else:
-                    self.execute_command(data)
+                event.ignore()
+
+    def handle_new_socket(self, socket):
+        self.client_socket = socket
+
+    def handle_empty_command(self, socket):
+        self.clear()
+        messageboxes.opponent_give_up()
+        self.show_content_main()
+
+
+def main():
+    app = Application()
+    app.start()
+
+
+if __name__ == '__main__':
+    main()

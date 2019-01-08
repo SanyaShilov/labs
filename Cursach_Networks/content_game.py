@@ -1,47 +1,9 @@
-from PyQt5.QtWidgets import QApplication, QWidget
+from PyQt5.QtWidgets import QWidget
 from PyQt5.QtGui import QPainter
 from PyQt5.QtCore import Qt
 
 import game
 import widgets
-
-
-class FakeApp:
-    def __init__(self):
-        map = {
-            'map': [
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [1, 1, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 0, 0],
-                [0, 0, 0, 0, 0, 0, 5, 5],
-                [0, 0, 0, 0, 0, 0, 5, 5],
-            ],
-            'white_winning_position': [
-                [6, 6], [6, 7], [7, 6], [7, 7]
-            ],
-            'black_winning_position': [
-                [0, 0], [0, 1], [1, 0], [1, 1]
-            ]
-        }
-        self.game = game.Game(**map)
-        self.login = 'test login'
-        self.opponent = 'test opponent'
-        self.color = 'white'
-        self.opponent_color = 'black'
-
-    @staticmethod
-    def width():
-        return 800
-
-    @staticmethod
-    def height():
-        return 800
-
-    def handle_press_cell(self, result):
-        pass
 
 
 class ContentGame(widgets.Content):
@@ -51,11 +13,26 @@ class ContentGame(widgets.Content):
         self.content = _ContentGame(app, self)
         self.content.move(0, 0)
         self.setFixedSize(self.content.width() + 400, self.content.height())
-        self.color_lbl = widgets.Label('({})'.format(app.color), self, 200, 50, 900, 100, alignment='center')
-        self.vs_lbl = widgets.Label('playing vs.', self, 200, 50, 900, 150, alignment='center')
-        self.opponent_lbl = widgets.Label(app.opponent, self, 200, 50, 900, 200, alignment='center')
-        self.opponent_color_lbl = widgets.Label('({})'.format(app.opponent_color), self, 200, 50, 900, 250, alignment='center')
-        self.turn_lbl = widgets.Label('', self, 200, 50, 900, 400, alignment='center')
+        self.color_lbl = widgets.Label(
+            '({})'.format(app.color), self, 200, 50, 900, 100,
+            alignment='center'
+        )
+        self.vs_lbl = widgets.Label(
+            'playing vs.', self, 200, 50, 900, 150,
+            alignment='center'
+        )
+        self.opponent_lbl = widgets.Label(
+            app.opponent, self, 200, 50, 900, 200,
+            alignment='center'
+        )
+        self.opponent_color_lbl = widgets.Label(
+            '({})'.format(app.opponent_color), self, 200, 50, 900, 250,
+            alignment='center'
+        )
+        self.turn_lbl = widgets.Label(
+            '', self, 200, 50, 900, 400,
+            alignment='center'
+        )
 
         self.give_up_btn = widgets.PushButton(
             'Give up', self, 200, 100, 900, 600,
@@ -94,8 +71,11 @@ class _ContentGame(QWidget):
                          self.cellsize, self.cellsize)
 
     def paint_flag(self, i, j):
-        self.qp.drawRect(j * self.cellsize + self.cellsize3, i * self.cellsize + self.cellsize3,
-                         self.cellsize3, self.cellsize3)
+        self.qp.drawRect(
+            j * self.cellsize + self.cellsize3,
+            i * self.cellsize + self.cellsize3,
+            self.cellsize3, self.cellsize3
+        )
 
     def paint_winning_cell(self, i, j):
         self.qp.drawRect(j * self.cellsize,
@@ -194,14 +174,3 @@ class _ContentGame(QWidget):
             self.paint_available_moves()
         self.paint_flags()
         self.qp.end()
-
-
-def main():
-    qapp = QApplication([])
-    content = ContentGame(FakeApp())
-    content.show()
-    qapp.exec_()
-
-
-if __name__ == '__main__':
-    main()

@@ -25,4 +25,4 @@ class ContentSignIn(widgets.Content):
     def sign_in(self):
         login = self.login_lineedit.text()
         password = self.password_lineedit.text()
-        self.app.sign_in(login, password)
+        self.app.send_sign_in(login, password)

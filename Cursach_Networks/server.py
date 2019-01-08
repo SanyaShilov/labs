@@ -101,7 +101,7 @@ class Server(protocol.Participant):
     def execute_dont_want_to_play(self):
         self.waiting_player = None
 
-    def execute_empty_command(self, socket):
+    def handle_empty_command(self, socket):
         self.execute_sign_out(socket)
 
 
