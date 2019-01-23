@@ -14,7 +14,8 @@ class ContentMainNotSigned(widgets.Content):
         )
         self.champions_btn = widgets.PushButton(
             'Champions', self, 400, 100, 400, 400,
-            app.go(
-                app.show_content_champions,
-                app.show_content_main_not_signed)
+            self.show_champions
         )
+
+    def show_champions(self):
+        self.app.send_show_champions(self.app.show_content_main_not_signed)

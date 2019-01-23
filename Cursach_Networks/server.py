@@ -16,6 +16,7 @@ class Server(protocol.Participant):
         self.db = db.create_db()
 
     def execute_command(self, socket, data):
+        print(data)
         command = data['command']
         if command == 'SIGN_IN':
             self.execute_sign_in(socket, data)
@@ -27,6 +28,10 @@ class Server(protocol.Participant):
             self.execute_want_to_play(socket, data)
         elif command == 'DONT_WANT_TO_PLAY':
             self.execute_dont_want_to_play()
+        elif command == 'WIN':
+            self.execute_win(data)
+        elif command == 'SHOW_CHAMPIONS':
+            self.execute_show_champions(socket)
 
     def execute_sign_in(self, socket, data):
         if data['login'] in [
@@ -100,6 +105,48 @@ class Server(protocol.Participant):
 
     def execute_dont_want_to_play(self):
         self.waiting_player = None
+
+    def execute_win(self, data):
+        self.db.users.find_one_and_update(
+            {
+                'login': data['login']
+            },
+            {
+                '$inc': {
+                    'games': 1,
+                    'wins': 1
+                }
+            }
+        )
+        self.db.users.find_one_and_update(
+            {
+                'login': data['opponent']
+            },
+            {
+                '$inc': {
+                    'games': 1,
+                    'looses': 1
+                }
+            }
+        )
+
+    def execute_show_champions(self, socket):
+        self.send_data(
+            socket,
+            {
+                'champions': list(
+                    self.db.users.find(
+                        {},
+                        {
+                            '_id': False,
+                            'password': False
+                        }
+                    ).sort(
+                        [('wins', -1)]
+                    )
+                )
+            }
+        )
 
     def handle_empty_command(self, socket):
         self.execute_sign_out(socket)

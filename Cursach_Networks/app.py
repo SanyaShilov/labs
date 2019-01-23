@@ -40,8 +40,8 @@ class Application(QMainWindow, protocol.Participant):
         self.opponent = None
         self.color = None
         self.opponent_color = None
-        self.map = None
         self.game = None
+        self.champions = None
 
         self.setFixedSize(1200, 800)
         self.move(
@@ -49,7 +49,8 @@ class Application(QMainWindow, protocol.Participant):
         )
         self.show_content_main_not_signed()
         self.setWindowTitle(
-            'Курсовой проект по компьютерным сетям Шилов ИУ7-72')
+            'Курсовой проект по компьютерным сетям Шилов ИУ7-72'
+        )
 
     # show content
 
@@ -61,7 +62,8 @@ class Application(QMainWindow, protocol.Participant):
 
     def show_content_main_not_signed(self):
         self.setCentralWidget(
-            content_main_not_signed.ContentMainNotSigned(self))
+            content_main_not_signed.ContentMainNotSigned(self)
+        )
 
     def show_content_game(self):
         self.setCentralWidget(content_game.ContentGame(self))
@@ -166,25 +168,26 @@ class Application(QMainWindow, protocol.Participant):
         self.clear()
         self.show_content_main()
 
-    def handle_press_cell(self, result):
-        if result['result'] == 'MOVE':
-            self.game.locked = True
-            self.content_game.repaint()
-            data = {
-                'command': 'MOVE',
-                'from': result['from'],
-                'to': result['to']
+    def send_show_champions(self, go_back_func):
+        self.send_data(
+            self.server_socket,
+            {
+                'command': 'SHOW_CHAMPIONS'
             }
-            if (
-                    self.color == 'white' and self.game.white_win() or
-                    self.color == 'black' and self.game.black_win()
-            ):
-                data['command'] = 'LOOSE'
-            self.send_data(self.client_socket, data)
-            if data['command'] == 'LOOSE':
-                self.clear()
-                messageboxes.win()
-                self.show_content_main()
+        )
+        data = self.recv_data(self.server_socket)
+        self.champions = data['champions']
+        self.go(self.show_content_champions, go_back_func)()
+
+    def send_win(self):
+        self.send_data(
+            self.server_socket,
+            {
+                'command': 'WIN',
+                'login': self.login,
+                'opponent': self.opponent
+            }
+        )
 
     # execute command
 
@@ -214,6 +217,27 @@ class Application(QMainWindow, protocol.Participant):
         self.show_content_main()
 
     # other
+
+    def handle_press_cell(self, result):
+        if result['result'] == 'MOVE':
+            self.game.locked = True
+            self.content_game.repaint()
+            data = {
+                'command': 'MOVE',
+                'from': result['from'],
+                'to': result['to']
+            }
+            if (
+                    self.color == 'white' and self.game.white_win() or
+                    self.color == 'black' and self.game.black_win()
+            ):
+                data['command'] = 'LOOSE'
+            self.send_data(self.client_socket, data)
+            if data['command'] == 'LOOSE':
+                self.clear()
+                self.send_win()
+                messageboxes.win()
+                self.show_content_main()
 
     def clear(self):
         self.selected_sockets.clear()
@@ -251,6 +275,7 @@ class Application(QMainWindow, protocol.Participant):
 
     def handle_empty_command(self, socket):
         self.clear()
+        self.send_win()
         messageboxes.opponent_give_up()
         self.show_content_main()
 
