@@ -16,7 +16,6 @@ class Server(protocol.Participant):
         self.db = db.create_db()
 
     def execute_command(self, socket, data):
-        print(data)
         command = data['command']
         if command == 'SIGN_IN':
             self.execute_sign_in(socket, data)
@@ -142,7 +141,7 @@ class Server(protocol.Participant):
                             'password': False
                         }
                     ).sort(
-                        [('wins', -1)]
+                        [('wins', -1), ('looses', 1)]
                     )
                 )
             }

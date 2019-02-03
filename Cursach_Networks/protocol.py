@@ -17,6 +17,25 @@ def convert_bytes_to_length(bytes):
     return sum(bytes[i] << ((N - 1 - i) * 8) for i in range(N))
 
 
+def send_data(socket, data):
+    data = bytes(json.dumps(data), encoding='utf-8')
+    length = len(data)
+    socket.send(convert_length_to_bytes(length))
+    socket.send(data)
+
+
+def recv_data(socket):
+    try:
+        data = socket.recv(N)
+    except Exception:
+        data = None
+    if not data:
+        return None
+    length = convert_bytes_to_length(data)
+    data = socket.recv(length)
+    return json.loads(str(data, encoding='utf-8'))
+
+
 class Participant:
     IP = ''
     PORT = 0
@@ -35,22 +54,11 @@ class Participant:
 
     @staticmethod
     def recv_data(socket):
-        try:
-            data = socket.recv(N)
-        except Exception:
-            data = None
-        if not data:
-            return None
-        length = convert_bytes_to_length(data)
-        data = socket.recv(length)
-        return json.loads(str(data, encoding='utf-8'))
+        return recv_data(socket)
 
     @staticmethod
     def send_data(socket, data):
-        data = bytes(json.dumps(data), encoding='utf-8')
-        length = len(data)
-        socket.send(convert_length_to_bytes(length))
-        socket.send(data)
+        send_data(socket, data)
 
     def select(self, timeout=None):
         rlst, _, _ = select.select(
