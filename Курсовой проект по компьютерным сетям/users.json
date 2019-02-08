@@ -1,0 +1,23 @@
+[
+  {
+    "login": "111",
+    "password": "111",
+    "games": 8,
+    "wins": 5,
+    "looses": 3
+  },
+  {
+    "login": "222",
+    "password": "222",
+    "games": 6,
+    "wins": 3,
+    "looses": 3
+  },
+  {
+    "login": "333",
+    "password": "333",
+    "games": 6,
+    "wins": 2,
+    "looses": 4
+  }
+]
