@@ -1,10 +1,3 @@
-read 1.
-read 2.
-read 3.
-read 4.
-read 5.
-read 6.
-read 7.
-read 8.
-read 9.
-read 10.
+Hello world from 18239 18239 clock: 23333515702859 ts: 1550003455 137685258
+cpu 0 0
+write pid 123

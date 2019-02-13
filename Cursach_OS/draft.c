@@ -13,11 +13,16 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    FILE** logs = open_logs(pids, pids_count);
     int* fds = open_fds(pids, pids_count);
 
     long long count;
     int end = clock() + time;
+
+    for (int i = 0; i < pids_count; ++i)
+    {
+        ioctl(fds[i], PERF_EVENT_IOC_RESET, 0);
+        ioctl(fds[i], PERF_EVENT_IOC_ENABLE, 0);
+    }
 
     while (clock() < end)
     {
@@ -28,8 +33,10 @@ int main(int argc, char** argv)
         }
     }
 
+    for (int i = 0; i < pids_count; ++i)
+        ioctl(fds[i], PERF_EVENT_IOC_DISABLE, 0);
+
     close_fds(fds, pids_count);
-    close_logs(logs, pids_count);
     free(pids);
     return 0;
 }
