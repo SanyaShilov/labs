@@ -9,6 +9,7 @@ FILE** open_logs(int* pids, int pids_count)
         char filename[50];
         sprintf(filename, "%d.log", pids[i]);
         logs[i] = fopen(filename, "w");
+        fprintf(logs[i], "Time\tCPU\tMemory\tFiles\tChild Processes\n");
     }
     return logs;
 }

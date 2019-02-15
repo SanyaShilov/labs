@@ -1,0 +1,4 @@
+/proc/<pid>/sched/ se/sum_exec_runtime или perf_event_open - сколько выполнялся
+/proc/<pid>/status VmData + VmStk - текущая(?) память
+/proc/<pid>/fd + readlink или struct files_struct в модуле - файлы, сокеты, каналы
+https://stackoverflow.com/questions/1035389/getting-the-pid-of-my-children-using-linux-system-calls-in-c?noredirect=1&lq=1 или в модуле - дочерние процессы

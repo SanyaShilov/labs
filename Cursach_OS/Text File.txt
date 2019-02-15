@@ -1,0 +1,16 @@
+import os
+from pprint import pprint
+
+
+PROC = '/proc/self'
+
+
+for obj in os.listdir(PROC):
+    path = os.path.join(PROC, obj)
+    print(path)
+    if os.path.isfile(path):
+        try:
+            file = open(path)
+            pprint(file.readlines())
+        except Exception as exc:
+            pprint(exc)

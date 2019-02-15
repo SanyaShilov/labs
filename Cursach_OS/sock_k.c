@@ -1,72 +1,61 @@
-#include <linux/module.h>
-#include <net/sock.h>
-#include <linux/netlink.h>
-#include <linux/skbuff.h>
-#include <linux/kernel.h>
-#define NETLINK_USER 31
+#include "common_k.h"
 
-struct sock *nl_sk = NULL;
 
-static void hello_nl_recv_msg(struct sk_buff *skb)
+static struct sock *nl_sk;
+static struct nlmsghdr *nlh;
+static struct sk_buff *skb;
+static struct sk_buff *skb_out;
+
+
+char* recieve_message(void)
 {
-
-    struct nlmsghdr *nlh;
-    int pid;
-    struct sk_buff *skb_out;
-    int msg_size;
-    char *msg = "Hello from kernel";
-    int res;
-
-    printk(KERN_INFO "Entering: %s\n", __FUNCTION__);
-
-    msg_size = strlen(msg);
-
-    nlh = (struct nlmsghdr *)skb->data;
-    char* payload;
-    payload = (char *)nlmsg_data(nlh);
-    printk(KERN_INFO "Netlink received msg payload: %s\n", payload);
-    pid = nlh->nlmsg_pid; /*pid of sending process */
-
-    skb_out = nlmsg_new(msg_size, 0);
-    if (!skb_out) {
-        printk(KERN_ERR "Failed to allocate new skb\n");
-        return;
-    }
-
-    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, msg_size, 0);
-    NETLINK_CB(skb_out).dst_group = 0; /* not in mcast group */
-    strncpy(nlmsg_data(nlh), msg, msg_size);
-
-    res = nlmsg_unicast(nl_sk, skb_out, pid);
-    if (res < 0)
-        printk(KERN_INFO "Error while sending bak to user\n");
+    nlh = (struct nlmsghdr*)skb->data;
+    return (char*)nlmsg_data(nlh);
 }
 
-static int __init hello_init(void)
+
+int sender_pid(void)
 {
+    return nlh->nlmsg_pid;
+}
 
-    printk("Entering: %s\n", __FUNCTION__);
-    //nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, 0, hello_nl_recv_msg, NULL, THIS_MODULE);
+
+int send_message(char* msg)
+{
+    int msg_size = strlen(msg);
+    int pid = sender_pid();
+    skb_out = nlmsg_new(msg_size, 0);
+    nlh = nlmsg_put(skb_out, 0, 0, NLMSG_DONE, msg_size, 0);
+    NETLINK_CB(skb_out).dst_group = 0;
+    strncpy(nlmsg_data(nlh), msg, msg_size);
+    return nlmsg_unicast(nl_sk, skb_out, pid);
+}
+
+
+void handle_message(struct sk_buff *recieved_skb)
+{
+    skb = recieved_skb;
+    char* message = recieve_message();
+    printk(KERN_INFO "recieved message: %s\n", message);
+    send_message("hello from kernel");
+}
+
+
+int __init hello_init(void)
+{
     struct netlink_kernel_cfg cfg = {
-        .input = hello_nl_recv_msg,
+        .input = handle_message,
     };
-
     nl_sk = netlink_kernel_create(&init_net, NETLINK_USER, &cfg);
-    if (!nl_sk) {
-        printk(KERN_ALERT "Error creating socket.\n");
-        return -10;
-    }
-
     return 0;
 }
 
-static void __exit hello_exit(void)
+void __exit hello_exit(void)
 {
-
-    printk(KERN_INFO "exiting hello module\n");
     netlink_kernel_release(nl_sk);
 }
 
-module_init(hello_init); module_exit(hello_exit);
+module_init(hello_init);
+module_exit(hello_exit);
 
 MODULE_LICENSE("GPL");
