@@ -72,7 +72,7 @@ int parse_args(int argc, char** argv, int* time, int* pids, int* pids_count, cha
         }
     }
     if (result == 2)
-        sprintf(message_to_kernel, "%s %s", c_time, c_pids);
+        sprintf(message_to_kernel, "%s", c_pids);
     free(c_time);
     free(c_pids);
     return result;

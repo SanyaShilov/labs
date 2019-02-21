@@ -2,7 +2,12 @@
 
 
 static const char* COURSE_PROJECT_FILENAME = "course_project";
-static struct proc_dir_entry* course_project_file = NULL;
+static struct proc_dir_entry* course_project_file;
+
+static char buffer[1000];
+static int pids[100];
+static int pids_count = 0;
+static int curr_pid = 0;
 
 
 struct task_struct* get_task_by_pid(int pid)
@@ -106,57 +111,55 @@ bool not_end(struct timespec end)
 
 ssize_t course_project_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 {
-    return 0;
+    if (pids_count == 0)
+        return 0;
+
+    unsigned long long cpu_usage = 0;
+    unsigned long memory_usage = 0;
+    int children_count = 0, file_count = 0, socket_count = 0, pipe_count = 0;
+    struct task_struct* task;
+    struct timespec now;
+
+    task = get_task_by_pid(pids[curr_pid]);
+    getnstimeofday(&now);
+    if (task)
+    {
+        get_all_counts(task, &cpu_usage, &memory_usage, &children_count, &file_count, &socket_count, &pipe_count);
+        snprintf(buffer, 1000, "%10ld.%09ld | %10llu.%09llu | %20lu | %10d | %10d | %10d | %10d\n",
+                 now.tv_sec, now.tv_nsec, cpu_usage / 1000000000, cpu_usage % 1000000000, memory_usage,
+                 children_count, file_count, socket_count, pipe_count);
+    }
+    else
+        snprintf(buffer, 1000, "%10ld.%09ld | -\n",
+                 now.tv_sec, now.tv_nsec);
+
+    curr_pid = (curr_pid + 1) % pids_count;
+
+    copy_to_user(buf, buffer, 1000);
+    int len = strlen(buffer);
+    *offp += len;
+    return len;
 }
 
 
 ssize_t course_project_write(struct file *filp, const char *buf, size_t count, loff_t *offp)
 {
-    char* buffer = vmalloc(1000);
-    char* save_buffer = buffer;  // strsep changes buffer
-    memset(buffer, 0, 1000);
-    copy_from_user(buffer, buf, count);
-    printk("course project working with %s", buffer);
+    char* input = vmalloc(1000);
+    memset(input, 0, 1000);
+    copy_from_user(input, buf, count);
+    printk("course project working with %s", input);
 
-    int time = 0;
-    int pids_count = 0;
-    int pids[100];
-    struct timespec end;
-    while (buffer)
+    pids_count = 0;
+    curr_pid = 0;
+    while (input)
     {
-        char* result_c = strsep(&buffer, " ,;");
+        char* result_c = strsep(&input, " ,;");
         long result_l;
         kstrtol(result_c, 10, &result_l);
         int result = (int)result_l;
-        if (!time)
-            time = result;
-        else
-            pids[pids_count++] = result;
-    }
-    int i;
-    unsigned long long cpu_usage;
-    unsigned long memory_usage;
-    int children_count, file_count, socket_count, pipe_count;
-    struct task_struct* task;
-    struct timespec now;
-    get_end(time, &end);
-    while (not_end(end))
-    {
-        for (i = 0; i < pids_count; ++i)
-        {
-            task = get_task_by_pid(pids[i]);
-            if (!task)
-                continue;
-            get_all_counts(task, &cpu_usage, &memory_usage, &children_count, &file_count, &socket_count, &pipe_count);
-            getnstimeofday(&now);
-            printk("course project %d %10ld.%09ld | %10llu.%09llu | %20lu | %10d | %10d | %10d | %10d",
-                   pids[i], now.tv_sec, now.tv_nsec, cpu_usage / 1000000000, cpu_usage % 1000000000, memory_usage,
-                   children_count, file_count, socket_count, pipe_count);
-        }
+        pids[pids_count++] = result;
     }
 
-    printk("course project stop working");
-    vfree(save_buffer);
     return 1000;
 }
 

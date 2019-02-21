@@ -10,10 +10,11 @@ void grep_logs(int* pids, int pids_count)
         sprintf(filename, "%d.log", pids[i]);
         sprintf(command, "echo '%20s | %20s | %20s | %10s | %10s | %10s | %10s' > %s",
                 "Time", "CPU", "Memory", "Children", "Files", "Sockets", "Pipes", filename);
-        system(command);
-        int delayed = clock() + 10000;
+        //system(command);
+        int delayed = clock() + 100000;
         while (clock() < delayed);
-        sprintf(command, "grep -Po 'course project %d \\K.*' /var/log/syslog >> %s", pids[i], filename);
+        sprintf(command, "grep 'course project' /var/log/syslog");
+        printf("%s\n", command);
         system(command);
     }
     free(command);
