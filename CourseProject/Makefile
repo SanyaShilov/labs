@@ -6,8 +6,11 @@ else
 	PWD = $(shell pwd)
 default:
 	$(MAKE) -C $(KDIR) M=$(PWD) modules
+	gcc -o main main.c
+	gcc -o test test.c
+	gcc -o mysleep mysleep.c
+	gcc -o proc proc.c
 	make clean
-	make userspace
 clean:
 	rm *.o
 	rm *.mod.c
@@ -16,6 +19,4 @@ clean:
 	rm .cache.mk
 	rm .*.*.cmd
 	rm -r .tmp_versions
-userspace:
-	gcc -o main args.c main.c logs.c
 endif

@@ -1,4 +1,13 @@
-#include "common_k.h"
+#include <linux/module.h>
+#include <linux/kernel.h>
+#include <linux/proc_fs.h>
+#include <linux/sched.h>
+#include <linux/uaccess.h>
+#include <linux/slab.h>
+#include <linux/fs.h>
+#include <linux/time.h>
+#include <linux/list.h>
+#include <linux/fdtable.h>
 
 
 static const char* COURSE_PROJECT_FILENAME = "course_project";
@@ -8,6 +17,9 @@ static char buffer[1000];
 static int pids[100];
 static int pids_count = 0;
 static int curr_pid = 0;
+
+
+#define DEBUG printk("debug %s %d", __FUNCTION__, __LINE__);
 
 
 struct task_struct* get_task_by_pid(int pid)
@@ -87,28 +99,6 @@ void get_all_counts(struct task_struct* task, unsigned long long* cpu_usage, uns
 }
 
 
-void get_end(int milliseconds, struct timespec* ts)
-{
-    getnstimeofday(ts);
-    ts->tv_nsec += milliseconds * 1000000;
-    ts->tv_sec += ts->tv_nsec / 1000000000;
-    ts->tv_nsec %= 1000000000;
-}
-
-
-bool not_end(struct timespec end)
-{
-    struct timespec now;
-    getnstimeofday(&now);
-    if (now.tv_sec < end.tv_sec)
-        return true;
-    else if (now.tv_sec == end.tv_sec)
-        if (now.tv_nsec < end.tv_nsec)
-            return true;
-    return false;
-}
-
-
 ssize_t course_project_read(struct file *filp, char *buf, size_t count, loff_t *offp)
 {
     if (pids_count == 0)
@@ -119,7 +109,6 @@ ssize_t course_project_read(struct file *filp, char *buf, size_t count, loff_t *
     int children_count = 0, file_count = 0, socket_count = 0, pipe_count = 0;
     struct task_struct* task;
     struct timespec now;
-
     task = get_task_by_pid(pids[curr_pid]);
     getnstimeofday(&now);
     if (task)
@@ -153,10 +142,14 @@ ssize_t course_project_write(struct file *filp, const char *buf, size_t count, l
     curr_pid = 0;
     while (input)
     {
+        printk("input %s", input);
         char* result_c = strsep(&input, " ,;");
+        printk("result_c %s", result_c);
         long result_l;
         kstrtol(result_c, 10, &result_l);
+        printk("result_l %ld", result_l);
         int result = (int)result_l;
+        printk("result %d", result);
         pids[pids_count++] = result;
     }
 
@@ -192,3 +185,4 @@ MODULE_AUTHOR("Shilov Alexandr");
 
 module_init(course_project_init);
 module_exit(course_project_exit);
+
