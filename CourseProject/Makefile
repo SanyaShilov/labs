@@ -9,7 +9,6 @@ default:
 	gcc -o main main.c
 	gcc -o test test.c
 	gcc -o mysleep mysleep.c
-	gcc -o proc proc.c
 	make clean
 clean:
 	rm *.o

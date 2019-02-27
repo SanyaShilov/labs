@@ -105,27 +105,23 @@ int main(int argc, char** argv)
         printf("invalid arguments, usage: main --time MILLISECONDS --pids 'PID1 PID2 ...'\n");
         return -1;
     }
-    DEBUG
+
     FILE* f = fopen("/proc/course_project", "w");
     fprintf(f, "%s", message_to_kernel);
     fclose(f);
-    DEBUG
-    DEBUG
+
     FILE** files = malloc(100 * sizeof(int));
-    DEBUG
     for (i = 0; i < pids_count; ++i)
     {
-        DEBUG
         char filename[100];
         sprintf(filename, "./log/%d.log", pids[i]);
         files[i] = fopen(filename, "w");
         fprintf(files[i], "%20s | %20s | %20s | %10s | %10s | %10s | %10s\n",
                 "Time", "CPU", "Memory", "Children", "Files", "Sockets", "Pipes");
     }
+
     char data[1000];
-    DEBUG
     f = fopen("/proc/course_project", "r");
-    DEBUG
     struct timeval tv1, tv2;
     for (int t = 0; t < time; ++t)
     {
