@@ -24,9 +24,11 @@ static int curr_pid = 0;
 
 struct task_struct* get_task_by_pid(int pid)
 {
+    struct task_struct* task;
     struct pid* s_pid;
     s_pid = find_get_pid(pid);
-    return get_pid_task(s_pid, PIDTYPE_PID);
+    task = get_pid_task(s_pid, PIDTYPE_PID);
+    return task;
 }
 
 
