@@ -61,7 +61,7 @@ int high_children_count(void)
     {
         ++current;
         int pid = fork();
-        usleep(1000);
+        usleep(3000);
         if (!pid)
             execl("mysleep", " ", NULL);
         else
@@ -116,7 +116,7 @@ int high_files_count(void)
                 pipe(pipes[r]);
             }
         }
-        usleep(1000);
+        usleep(3000);
     }
     return pipes[0][0];
 }
